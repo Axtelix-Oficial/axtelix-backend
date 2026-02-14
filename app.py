@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 CORS(app) 
 
-# Esta es tu lista de cupones única
+# Tu lista de cupones
 cupones = {
     "AXTELIX-PRUEBA": 300
 }
@@ -17,13 +17,16 @@ def validar():
     
     if codigo in cupones:
         descuento = cupones[codigo]
-        # Aquí es donde se borra: una vez entregado, desaparece de la lista
+        # Se borra de la memoria para que sea de un solo uso
         del cupones[codigo] 
         return jsonify({"valido": True, "descuento": descuento})
     else:
         return jsonify({"valido": False, "mensaje": "Cupón inválido o ya usado"})
 
+@app.route('/')
+def home():
+    return "Servidor Axtelix Activo"
+
 if __name__ == '__main__':
-    # Este ajuste permite que el servidor de internet le asigne un puerto automáticamente
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
