@@ -8,7 +8,7 @@ CORS(app)
 # Tu lista de cupones activos
 cupones = {
     "AXTE-LIX-NEW": 200,
-    "5050": 200
+    "AXTELIX-DAY-¿?": 200
 }
 
 # La URL de tu Google Apps Script
