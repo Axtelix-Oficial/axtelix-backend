@@ -1,42 +1,44 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import datetime # Para saber la hora exacta
+import requests # Importante para hablar con Google
 
 app = Flask(__name__)
 CORS(app)
 
+# Tu lista de cupones
 cupones = {
-    "1010": 300,
-    "DUNK-OFFER": 100 # Por si vendes los tenis de 790
+    "2020": 300,
+    "DUNK-OFFER": 100
 }
+
+# URL que copiaste de Google Apps Script
+URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbxyTW2mDwxXeHvVHZi0JbiWxLqlgkwHuUrr3D7D9c4Ug9iHOIDGCqMqMyKlTOPBjuHA/exec"
 
 @app.route('/validar-cupon', methods=['POST'])
 def validar():
     datos = request.json
     codigo = datos.get("codigo", "").upper()
-    nombre_cliente = datos.get("nombre", "Desconocido")
-    producto = datos.get("producto", "No especificado")
+    # Si tu JS no manda productos aún, pondrá "Desconocido"
+    productos = datos.get("productos", "Venta desde la web")
 
     if codigo in cupones:
         descuento = cupones[codigo]
         
-        # --- EL DETECTIVE: Guardar en un archivo ---
-        with open("usos_cupones.txt", "a") as f:
-            fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"[{fecha}] {nombre_cliente} usó {codigo} para {producto} - Desc: ${descuento}\n")
+        # --- ENVIAR A GOOGLE SHEETS ---
+        payload = {
+            "codigo": codigo,
+            "descuento": descuento,
+            "productos": productos
+        }
+        try:
+            # Mandamos los datos a tu Excel en la nube
+            requests.post(URL_GOOGLE_SHEETS, json=payload)
+        except Exception as e:
+            print(f"Error enviando a Google: {e}")
         
         return jsonify({"valido": True, "descuento": descuento})
     else:
         return jsonify({"valido": False, "mensaje": "Cupón inválido"})
-    
-    
-    
-    # --- LA RUTA SECRETA ---
-@app.route('/ver-mi-bitacora-axtelix', methods=['GET'])
-def ver_bitacora():
-    try:
-        with open("usos_cupones.txt", "r") as f:
-            contenido = f.read()
-        return f"<pre>{contenido}</pre>"
-    except FileNotFoundError:
-        return "Aún no hay registros de cupones."
+
+if __name__ == '__main__':
+    app.run(debug=True)
