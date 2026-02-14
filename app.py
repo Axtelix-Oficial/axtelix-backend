@@ -7,12 +7,12 @@ CORS(app)
 
 # Tu lista de cupones activos
 cupones = {
-    "3030": 300,
-    "4040": 100
+    "AXTE-LIX-NEW": 200,
+    "5050": 200
 }
 
 # La URL de tu Google Apps Script
-URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbwIWXpvCGA0febrY5A4UyzbmYT3HSVgl4WM6QRaC9790g9WDC4avAHhBprarFAWtDnb/exec"
+URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbzg45LFQW27Yswi-FYjoC7TzdQfJi1wBAzMGKUpgWK3YjIbAHJzU9AsQOA-Fgf_GiiC/exec"
 
 @app.route('/validar-cupon', methods=['POST'])
 def validar():
