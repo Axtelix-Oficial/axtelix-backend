@@ -28,3 +28,15 @@ def validar():
         return jsonify({"valido": True, "descuento": descuento})
     else:
         return jsonify({"valido": False, "mensaje": "Cupón inválido"})
+    
+    
+    
+    # --- LA RUTA SECRETA ---
+@app.route('/ver-mi-bitacora-axtelix', methods=['GET'])
+def ver_bitacora():
+    try:
+        with open("usos_cupones.txt", "r") as f:
+            contenido = f.read()
+        return f"<pre>{contenido}</pre>"
+    except FileNotFoundError:
+        return "Aún no hay registros de cupones."
