@@ -9,8 +9,8 @@ CORS(app)
 cupones = {
     "AXT-VIP-100": 100,
     "PROMO-500": 500,
-    "PRUEBA": 300,
-    "PRUEBA-2": 200
+    "PRUEBA-3": 300,
+    "PRUEBA-4": 100
 }
 
 @app.route('/validar-cupon', methods=['POST'])
