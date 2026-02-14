@@ -1,32 +1,30 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
+import datetime # Para saber la hora exacta
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 
-# Tu lista de cupones
 cupones = {
-    "AXTELIX": 300
+    "1010": 300,
+    "DUNK-OFFER": 100 # Por si vendes los tenis de 790
 }
 
 @app.route('/validar-cupon', methods=['POST'])
 def validar():
     datos = request.json
     codigo = datos.get("codigo", "").upper()
-    
+    nombre_cliente = datos.get("nombre", "Desconocido")
+    producto = datos.get("producto", "No especificado")
+
     if codigo in cupones:
         descuento = cupones[codigo]
-        # Se borra de la memoria para que sea de un solo uso
-        del cupones[codigo] 
+        
+        # --- EL DETECTIVE: Guardar en un archivo ---
+        with open("usos_cupones.txt", "a") as f:
+            fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"[{fecha}] {nombre_cliente} usó {codigo} para {producto} - Desc: ${descuento}\n")
+        
         return jsonify({"valido": True, "descuento": descuento})
     else:
-        return jsonify({"valido": False, "mensaje": "Cupón inválido o ya usado"})
-
-@app.route('/')
-def home():
-    return "Servidor Axtelix Activo"
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+        return jsonify({"valido": False, "mensaje": "Cupón inválido"})
