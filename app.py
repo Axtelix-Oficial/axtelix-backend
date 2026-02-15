@@ -4,50 +4,48 @@ import requests
 import os
 
 app = Flask(__name__)
+# Esto permite que tu HTML (frontend) hable con este Python (backend) sin bloqueos
 CORS(app)
 
-# 1. TU URL DE GOOGLE APPS SCRIPT (La que termina en /exec)
-GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmlZ1tW9IUqtZINXBMiJYSk3mNeyth_ycgHLV_Y4YLkLeBddZfSECvnHHC_T2_IoOx/exec"
+# 1. TU URL DE GOOGLE APPS SCRIPT
+# Mantenemos tu URL actual que ya termina en /exec
+GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRLZ1aoJGdfA5s3ItUfXd2wCyI-ulxjcAhdVCkH1ztQm_VLcauKcTd96qFk-7iKORW/exec"
 
 @app.route('/')
 def home():
-    return "Backend de Axtelix Funcionando Correctamente"
+    return "Bot de Axtelix: ¡Estoy vivo y trabajando!"
 
 @app.route('/obtener-inventario', methods=['GET'])
 def obtener_inventario():
     try:
-        # Llamamos al doGet de tu Google Script
-        respuesta = requests.get(GOOGLE_SCRIPT_URL)
-        respuesta.raise_for_status()
+        # Pedimos los datos a Google Sheets
+        respuesta = requests.get(GOOGLE_SCRIPT_URL, timeout=10)
+        datos = respuesta.json()
         
-        # El script ya devuelve el JSON con "productos"
-        return jsonify(respuesta.json())
+        # Si Google nos manda la lista dentro de una llave llamada "productos", la extraemos
+        # Si nos manda la lista directamente, usamos esa.
+        if isinstance(datos, dict) and "productos" in datos:
+            return jsonify(datos["productos"])
+        return jsonify(datos)
         
     except Exception as e:
-        print(f"Error en inventario: {e}")
-        return jsonify({
-            "status": "error",
-            "message": "Error al conectar con Google Script"
-        }), 500
+        print(f"Error: {e}")
+        # Si falla, mandamos una lista vacía para que el HTML use su 'RESPALDO'
+        return jsonify([])
 
 @app.route('/validar-cupon', methods=['POST'])
 def validar_cupon():
     try:
         datos_cliente = request.json
-        # Enviamos el cupón al doPost de tu Google Script
-        respuesta = requests.post(GOOGLE_SCRIPT_URL, json=datos_cliente)
-        respuesta.raise_for_status()
-        
+        # Le enviamos el código del cupón a Google para que lo cheque
+        respuesta = requests.post(GOOGLE_SCRIPT_URL, json=datos_cliente, timeout=10)
         return jsonify(respuesta.json())
         
     except Exception as e:
         print(f"Error en cupones: {e}")
-        return jsonify({
-            "status": "error",
-            "mensaje": "Error al validar el cupón"
-        }), 500
+        return jsonify({"valido": False, "mensaje": "Servidor ocupado, intenta en 30 segundos"})
 
 if __name__ == '__main__':
-    # Puerto dinámico para Render
+    # Render usa el puerto que él quiera, por eso usamos os.environ.get
     puerto = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=puerto)
